@@ -7,17 +7,14 @@ from mypath import Path
 from torchvision import transforms
 from dataloaders import custom_transforms as tr
 
+
 class VOCSegmentation(Dataset):
     """
     PascalVoc dataset
     """
     NUM_CLASSES = 21
 
-    def __init__(self,
-                 args,
-                 base_dir=Path.db_root_dir('pascal'),
-                 split='train',
-                 ):
+    def __init__(self, args, base_dir=Path.db_root_dir('pascal'), split='train'):
         """
         :param base_dir: path to VOC dataset directory
         :param split: train/val
@@ -63,7 +60,6 @@ class VOCSegmentation(Dataset):
     def __len__(self):
         return len(self.images)
 
-
     def __getitem__(self, index):
         _img, _target = self._make_img_gt_point_pair(index)
         sample = {'image': _img, 'label': _target}
@@ -73,7 +69,6 @@ class VOCSegmentation(Dataset):
                 return self.transform_tr(sample)
             elif split == 'val':
                 return self.transform_val(sample)
-
 
     def _make_img_gt_point_pair(self, index):
         _img = Image.open(self.images[index]).convert('RGB')
@@ -92,7 +87,6 @@ class VOCSegmentation(Dataset):
         return composed_transforms(sample)
 
     def transform_val(self, sample):
-
         composed_transforms = transforms.Compose([
             tr.FixScaleCrop(crop_size=self.args.crop_size),
             tr.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
@@ -141,5 +135,3 @@ if __name__ == '__main__':
             break
 
     plt.show(block=True)
-
-

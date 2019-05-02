@@ -4,8 +4,8 @@ import torch
 from collections import OrderedDict
 import glob
 
-class Saver(object):
 
+class Saver(object):
     def __init__(self, args):
         self.args = args
         self.directory = os.path.join('run', args.dataset, args.checkname)
@@ -45,7 +45,7 @@ class Saver(object):
         logfile = os.path.join(self.experiment_dir, 'parameters.txt')
         log_file = open(logfile, 'w')
         p = OrderedDict()
-        p['datset'] = self.args.dataset
+        p['dataset'] = self.args.dataset
         p['backbone'] = self.args.backbone
         p['out_stride'] = self.args.out_stride
         p['lr'] = self.args.lr

@@ -4,6 +4,7 @@ import numpy as np
 
 from PIL import Image, ImageOps, ImageFilter
 
+
 class Normalize(object):
     """Normalize a tensor image with mean and standard deviation.
     Args:
@@ -147,6 +148,7 @@ class FixScaleCrop(object):
 
         return {'image': img,
                 'label': mask}
+
 
 class FixedResize(object):
     def __init__(self, size):

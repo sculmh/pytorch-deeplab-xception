@@ -7,6 +7,7 @@ from mypath import Path
 from torchvision import transforms
 from dataloaders import custom_transforms as tr
 
+
 class CityscapesSegmentation(data.Dataset):
     NUM_CLASSES = 19
 
@@ -18,7 +19,7 @@ class CityscapesSegmentation(data.Dataset):
         self.files = {}
 
         self.images_base = os.path.join(self.root, 'leftImg8bit', self.split)
-        self.annotations_base = os.path.join(self.root, 'gtFine_trainvaltest', 'gtFine', self.split)
+        self.annotations_base = os.path.join(self.root, 'gtFine', self.split)
 
         self.files[split] = self.recursive_glob(rootdir=self.images_base, suffix='.png')
 
@@ -106,6 +107,7 @@ class CityscapesSegmentation(data.Dataset):
 
         return composed_transforms(sample)
 
+
 if __name__ == '__main__':
     from dataloaders.utils import decode_segmap
     from torch.utils.data import DataLoader
@@ -143,4 +145,3 @@ if __name__ == '__main__':
             break
 
     plt.show(block=True)
-

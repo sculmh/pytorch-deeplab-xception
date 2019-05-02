@@ -1,8 +1,8 @@
-import math
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from modeling.sync_batchnorm.batchnorm import SynchronizedBatchNorm2d
+
 
 class _ASPPModule(nn.Module):
     def __init__(self, inplanes, planes, kernel_size, padding, dilation, BatchNorm):
@@ -30,6 +30,7 @@ class _ASPPModule(nn.Module):
             elif isinstance(m, nn.BatchNorm2d):
                 m.weight.data.fill_(1)
                 m.bias.data.zero_()
+
 
 class ASPP(nn.Module):
     def __init__(self, backbone, output_stride, BatchNorm):

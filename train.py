@@ -14,6 +14,7 @@ from utils.saver import Saver
 from utils.summaries import TensorboardSummary
 from utils.metrics import Evaluator
 
+
 class Trainer(object):
     def __init__(self, args):
         self.args = args
@@ -60,8 +61,7 @@ class Trainer(object):
         # Define Evaluator
         self.evaluator = Evaluator(self.nclass)
         # Define lr scheduler
-        self.scheduler = LR_Scheduler(args.lr_scheduler, args.lr,
-                                            args.epochs, len(self.train_loader))
+        self.scheduler = LR_Scheduler(args.lr_scheduler, args.lr, args.epochs, len(self.train_loader))
 
         # Using cuda
         if args.cuda:
@@ -128,7 +128,6 @@ class Trainer(object):
                 'best_pred': self.best_pred,
             }, is_best)
 
-
     def validation(self, epoch):
         self.model.eval()
         self.evaluator.reset()
@@ -174,6 +173,7 @@ class Trainer(object):
                 'optimizer': self.optimizer.state_dict(),
                 'best_pred': self.best_pred,
             }, is_best)
+
 
 def main():
     parser = argparse.ArgumentParser(description="PyTorch DeeplabV3Plus Training")
@@ -243,7 +243,7 @@ def main():
                         help='finetuning on a different dataset')
     # evaluation option
     parser.add_argument('--eval-interval', type=int, default=1,
-                        help='evaluuation interval (default: 1)')
+                        help='evaluation interval (default: 1)')
     parser.add_argument('--no-val', action='store_true', default=False,
                         help='skip validation during training')
 
@@ -284,7 +284,6 @@ def main():
         }
         args.lr = lrs[args.dataset.lower()] / (4 * len(args.gpu_ids)) * args.batch_size
 
-
     if args.checkname is None:
         args.checkname = 'deeplab-'+str(args.backbone)
     print(args)
@@ -299,5 +298,6 @@ def main():
 
     trainer.writer.close()
 
+
 if __name__ == "__main__":
-   main()
+    main()

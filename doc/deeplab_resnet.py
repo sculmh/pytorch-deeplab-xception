@@ -7,6 +7,7 @@ from modeling.sync_batchnorm.batchnorm import SynchronizedBatchNorm2d
 
 BatchNorm2d = SynchronizedBatchNorm2d
 
+
 class Bottleneck(nn.Module):
     expansion = 4
 
@@ -46,6 +47,7 @@ class Bottleneck(nn.Module):
 
         return out
 
+
 class ResNet(nn.Module):
 
     def __init__(self, nInputChannels, block, layers, os=16, pretrained=False):
@@ -63,8 +65,7 @@ class ResNet(nn.Module):
             raise NotImplementedError
 
         # Modules
-        self.conv1 = nn.Conv2d(nInputChannels, 64, kernel_size=7, stride=2, padding=3,
-                                bias=False)
+        self.conv1 = nn.Conv2d(nInputChannels, 64, kernel_size=7, stride=2, padding=3, bias=False)
         self.bn1 = BatchNorm2d(64)
         self.relu = nn.ReLU(inplace=True)
         self.maxpool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
@@ -144,6 +145,7 @@ class ResNet(nn.Module):
                 model_dict[k] = v
         state_dict.update(model_dict)
         self.load_state_dict(state_dict)
+
 
 def ResNet101(nInputChannels=3, os=16, pretrained=False):
     model = ResNet(nInputChannels, Bottleneck, [3, 4, 23, 3], os, pretrained=pretrained)
@@ -253,7 +255,6 @@ class DeepLabv3_plus(nn.Module):
         low_level_features = self.bn2(low_level_features)
         low_level_features = self.relu(low_level_features)
 
-
         x = torch.cat((x, low_level_features), dim=1)
         x = self.last_conv(x)
         x = F.interpolate(x, size=input.size()[2:], mode='bilinear', align_corners=True)
@@ -273,6 +274,7 @@ class DeepLabv3_plus(nn.Module):
             elif isinstance(m, BatchNorm2d):
                 m.weight.data.fill_(1)
                 m.bias.data.zero_()
+
 
 def get_1x_lr_params(model):
     """
@@ -307,9 +309,3 @@ if __name__ == "__main__":
     with torch.no_grad():
         output = model.forward(image)
     print(output.size())
-
-
-
-
-
-

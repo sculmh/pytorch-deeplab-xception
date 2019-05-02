@@ -5,12 +5,13 @@ import torch.nn.functional as F
 import torch.utils.model_zoo as model_zoo
 from modeling.sync_batchnorm.batchnorm import SynchronizedBatchNorm2d
 
+
 def fixed_padding(inputs, kernel_size, dilation):
     kernel_size_effective = kernel_size + (kernel_size - 1) * (dilation - 1)
     pad_total = kernel_size_effective - 1
     pad_beg = pad_total // 2
     pad_end = pad_total - pad_beg
-    padded_inputs = F.pad(inputs, (pad_beg, pad_end, pad_beg, pad_end))
+    padded_inputs = F.pad(inputs, [pad_beg, pad_end, pad_beg, pad_end])
     return padded_inputs
 
 
@@ -109,7 +110,6 @@ class AlignedXception(nn.Module):
             exit_block_dilations = (2, 4)
         else:
             raise NotImplementedError
-
 
         # Entry flow
         self.conv1 = nn.Conv2d(3, 32, 3, stride=2, padding=1, bias=False)
@@ -243,7 +243,6 @@ class AlignedXception(nn.Module):
                 m.weight.data.fill_(1)
                 m.bias.data.zero_()
 
-
     def _load_pretrained_model(self):
         pretrain_dict = model_zoo.load_url('http://data.lip6.fr/cadene/pretrainedmodels/xception-b5690688.pth')
         model_dict = {}
@@ -276,7 +275,6 @@ class AlignedXception(nn.Module):
                     model_dict[k] = v
         state_dict.update(model_dict)
         self.load_state_dict(state_dict)
-
 
 
 if __name__ == "__main__":

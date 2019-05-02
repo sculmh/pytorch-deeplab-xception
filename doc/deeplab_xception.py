@@ -7,6 +7,7 @@ from modeling.sync_batchnorm.batchnorm import SynchronizedBatchNorm2d
 
 BatchNorm2d = SynchronizedBatchNorm2d
 
+
 class SeparableConv2d(nn.Module):
     def __init__(self, inplanes, planes, kernel_size=3, stride=1, padding=0, dilation=1, bias=False):
         super(SeparableConv2d, self)._init_()
@@ -84,7 +85,6 @@ class Block(nn.Module):
         if stride == 1 and is_last:
             rep.append(SeparableConv2d_same(planes, planes, 3, stride=1))
 
-
         self.rep = nn.Sequential(*rep)
 
     def forward(self, inp):
@@ -118,7 +118,6 @@ class Xception(nn.Module):
             exit_block_dilations = (2, 4)
         else:
             raise NotImplementedError
-
 
         # Entry flow
         self.conv1 = nn.Conv2d(inplanes, 32, 3, stride=2, padding=1, bias=False)
@@ -262,6 +261,7 @@ class Xception(nn.Module):
         state_dict.update(model_dict)
         self.load_state_dict(state_dict)
 
+
 class ASPP_module(nn.Module):
     def __init__(self, inplanes, planes, dilation):
         super(ASPP_module, self).__init__()
@@ -365,7 +365,6 @@ class DeepLabv3_plus(nn.Module):
         low_level_features = self.bn2(low_level_features)
         low_level_features = self.relu(low_level_features)
 
-
         x = torch.cat((x, low_level_features), dim=1)
         x = self.last_conv(x)
         x = F.interpolate(x, size=input.size()[2:], mode='bilinear', align_corners=True)
@@ -385,6 +384,7 @@ class DeepLabv3_plus(nn.Module):
             elif isinstance(m, BatchNorm2d):
                 m.weight.data.fill_(1)
                 m.bias.data.zero_()
+
 
 def get_1x_lr_params(model):
     """
@@ -419,6 +419,3 @@ if __name__ == "__main__":
     with torch.no_grad():
         output = model.forward(image)
     print(output.size())
-
-
-

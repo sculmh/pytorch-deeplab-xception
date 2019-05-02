@@ -168,7 +168,6 @@ class DRN(nn.Module):
                 m.weight.data.fill_(1)
                 m.bias.data.zero_()
 
-
     def _make_layer(self, block, planes, blocks, stride=1, dilation=1,
                     new_level=True, residual=True, BatchNorm=None):
         assert dilation == 1 or dilation % 2 == 0
@@ -297,6 +296,7 @@ class DRN_A(nn.Module):
 
         return x
 
+
 def drn_a_50(BatchNorm, pretrained=True):
     model = DRN_A(Bottleneck, [3, 4, 6, 3], BatchNorm=BatchNorm)
     if pretrained:
@@ -392,6 +392,7 @@ def drn_d_105(BatchNorm, pretrained=True):
         del pretrained['fc.bias']
         model.load_state_dict(pretrained)
     return model
+
 
 if __name__ == "__main__":
     import torch

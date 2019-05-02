@@ -1,6 +1,7 @@
 from dataloaders.datasets import cityscapes, coco, combine_dbs, pascal, sbd
 from torch.utils.data import DataLoader
 
+
 def make_data_loader(args, **kwargs):
 
     if args.dataset == 'pascal':
@@ -39,4 +40,3 @@ def make_data_loader(args, **kwargs):
 
     else:
         raise NotImplementedError
-
