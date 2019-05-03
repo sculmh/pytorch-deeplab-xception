@@ -7,6 +7,7 @@ from mypath import Path
 from dataloaders import make_data_loader
 from modeling.sync_batchnorm.replicate import patch_replication_callback
 from modeling.deeplab import *
+from modeling.deeplab_gn import *
 from utils.loss import SegmentationLosses
 from utils.calculate_weights import calculate_weigths_labels
 from utils.lr_scheduler import LR_Scheduler
@@ -31,11 +32,20 @@ class Trainer(object):
         self.train_loader, self.val_loader, self.test_loader, self.nclass = make_data_loader(args, **kwargs)
 
         # Define network
-        model = DeepLab(num_classes=self.nclass,
-                        backbone=args.backbone,
-                        output_stride=args.out_stride,
-                        sync_bn=args.sync_bn,
-                        freeze_bn=args.freeze_bn)
+        model = None
+        if args.groups is None:
+            # using BatchNorm
+            model = DeepLab(num_classes=self.nclass,
+                            backbone=args.backbone,
+                            output_stride=args.out_stride,
+                            sync_bn=args.sync_bn,
+                            freeze_bn=args.freeze_bn)
+        else:
+            # using GroupNorm
+            model = DeepLab_GN(num_classes=self.nclass,
+                               backbone=args.backbone,
+                               output_stride=args.out_stride,
+                               groups=args.groups)
 
         train_params = [{'params': model.get_1x_lr_params(), 'lr': args.lr},
                         {'params': model.get_10x_lr_params(), 'lr': args.lr * 10}]
@@ -213,6 +223,9 @@ def main():
                                 testing (default: auto)')
     parser.add_argument('--use-balanced-weights', action='store_true', default=False,
                         help='whether to use balanced weights (default: False)')
+    parser.add_argument('--groups', type=int, default=None,
+                        metavar='N', help='number groups for GroupNormalization.When groups is not None, \
+                        Deeplab will use GN instead of BN, now it only support Xception backbone')
     # optimizer params
     parser.add_argument('--lr', type=float, default=None, metavar='LR',
                         help='learning rate (default: auto)')
@@ -223,7 +236,7 @@ def main():
                         metavar='M', help='momentum (default: 0.9)')
     parser.add_argument('--weight-decay', type=float, default=5e-4,
                         metavar='M', help='w-decay (default: 5e-4)')
-    parser.add_argument('--nesterov', action='store_true', default=False,
+    parser.add_argument('--nesterov', action='store_true', default=True,
                         help='whether use nesterov (default: False)')
     # cuda, seed and logging
     parser.add_argument('--no-cuda', action='store_true', default=

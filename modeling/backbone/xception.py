@@ -11,7 +11,7 @@ def fixed_padding(inputs, kernel_size, dilation):
     pad_total = kernel_size_effective - 1
     pad_beg = pad_total // 2
     pad_end = pad_total - pad_beg
-    padded_inputs = F.pad(inputs, [pad_beg, pad_end, pad_beg, pad_end])
+    padded_inputs = F.pad(inputs, (pad_beg, pad_end, pad_beg, pad_end))
     return padded_inputs
 
 
@@ -96,8 +96,7 @@ class AlignedXception(nn.Module):
     """
     Modified Alighed Xception
     """
-    def __init__(self, output_stride, BatchNorm,
-                 pretrained=True):
+    def __init__(self, output_stride, BatchNorm, pretrained=False):
         super(AlignedXception, self).__init__()
 
         if output_stride == 16:
@@ -279,7 +278,7 @@ class AlignedXception(nn.Module):
 
 if __name__ == "__main__":
     import torch
-    model = AlignedXception(BatchNorm=nn.BatchNorm2d, pretrained=True, output_stride=16)
+    model = AlignedXception(BatchNorm=nn.BatchNorm2d, pretrained=False, output_stride=16)
     input = torch.rand(1, 3, 512, 512)
     output, low_level_feat = model(input)
     print(output.size())

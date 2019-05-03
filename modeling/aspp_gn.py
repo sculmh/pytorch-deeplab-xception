@@ -2,22 +2,21 @@ import math
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from modeling.sync_batchnorm.batchnorm import SynchronizedBatchNorm2d
 
 
-class _ASPPModule(nn.Module):
-    def __init__(self, inplanes, planes, kernel_size, padding, dilation, BatchNorm):
-        super(_ASPPModule, self).__init__()
+class _ASPPModule_GN(nn.Module):
+    def __init__(self, inplanes, planes, kernel_size, padding, dilation, groups):
+        super(_ASPPModule_GN, self).__init__()
         self.atrous_conv = nn.Conv2d(inplanes, planes, kernel_size=kernel_size,
                                             stride=1, padding=padding, dilation=dilation, bias=False)
-        self.bn = BatchNorm(planes)
+        self.gn = nn.GroupNorm(groups, planes, affine=True)
         self.relu = nn.ReLU()
 
         self._init_weight()
 
     def forward(self, x):
         x = self.atrous_conv(x)
-        x = self.bn(x)
+        x = self.gn(x)
 
         return self.relu(x)
 
@@ -25,17 +24,11 @@ class _ASPPModule(nn.Module):
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
                 torch.nn.init.kaiming_normal_(m.weight)
-            elif isinstance(m, SynchronizedBatchNorm2d):
-                m.weight.data.fill_(1)
-                m.bias.data.zero_()
-            elif isinstance(m, nn.BatchNorm2d):
-                m.weight.data.fill_(1)
-                m.bias.data.zero_()
 
 
-class ASPP(nn.Module):
-    def __init__(self, backbone, output_stride, BatchNorm):
-        super(ASPP, self).__init__()
+class ASPP_GN(nn.Module):
+    def __init__(self, backbone, output_stride, groups):
+        super(ASPP_GN, self).__init__()
         if backbone == 'drn':
             inplanes = 512
         elif backbone == 'mobilenet':
@@ -49,17 +42,17 @@ class ASPP(nn.Module):
         else:
             raise NotImplementedError
 
-        self.aspp1 = _ASPPModule(inplanes, 256, 1, padding=0, dilation=dilations[0], BatchNorm=BatchNorm)
-        self.aspp2 = _ASPPModule(inplanes, 256, 3, padding=dilations[1], dilation=dilations[1], BatchNorm=BatchNorm)
-        self.aspp3 = _ASPPModule(inplanes, 256, 3, padding=dilations[2], dilation=dilations[2], BatchNorm=BatchNorm)
-        self.aspp4 = _ASPPModule(inplanes, 256, 3, padding=dilations[3], dilation=dilations[3], BatchNorm=BatchNorm)
+        self.aspp1 = _ASPPModule_GN(inplanes, 256, 1, padding=0, dilation=dilations[0], groups=groups)
+        self.aspp2 = _ASPPModule_GN(inplanes, 256, 3, padding=dilations[1], dilation=dilations[1], groups=groups)
+        self.aspp3 = _ASPPModule_GN(inplanes, 256, 3, padding=dilations[2], dilation=dilations[2], groups=groups)
+        self.aspp4 = _ASPPModule_GN(inplanes, 256, 3, padding=dilations[3], dilation=dilations[3], groups=groups)
 
         self.global_avg_pool = nn.Sequential(nn.AdaptiveAvgPool2d((1, 1)),
                                              nn.Conv2d(inplanes, 256, 1, stride=1, bias=False),
-                                             BatchNorm(256),
+                                             nn.GroupNorm(groups, 256, affine=True),
                                              nn.ReLU())
         self.conv1 = nn.Conv2d(1280, 256, 1, bias=False)
-        self.bn1 = BatchNorm(256)
+        self.gn1 = nn.GroupNorm(groups, 256, affine=True)
         self.relu = nn.ReLU()
         self.dropout = nn.Dropout(0.5)
         self._init_weight()
@@ -74,7 +67,7 @@ class ASPP(nn.Module):
         x = torch.cat((x1, x2, x3, x4, x5), dim=1)
 
         x = self.conv1(x)
-        x = self.bn1(x)
+        x = self.gn1(x)
         x = self.relu(x)
 
         return self.dropout(x)
@@ -82,16 +75,8 @@ class ASPP(nn.Module):
     def _init_weight(self):
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
-                # n = m.kernel_size[0] * m.kernel_size[1] * m.out_channels
-                # m.weight.data.normal_(0, math.sqrt(2. / n))
                 torch.nn.init.kaiming_normal_(m.weight)
-            elif isinstance(m, SynchronizedBatchNorm2d):
-                m.weight.data.fill_(1)
-                m.bias.data.zero_()
-            elif isinstance(m, nn.BatchNorm2d):
-                m.weight.data.fill_(1)
-                m.bias.data.zero_()
 
 
-def build_aspp(backbone, output_stride, BatchNorm):
-    return ASPP(backbone, output_stride, BatchNorm)
+def build_aspp_gn(backbone, output_stride, groups):
+    return ASPP_GN(backbone, output_stride, groups)
