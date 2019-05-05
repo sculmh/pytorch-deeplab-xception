@@ -121,45 +121,45 @@ class AlignedXception(nn.Module):
         self.block1 = Block(64, 128, reps=2, stride=2, BatchNorm=BatchNorm, start_with_relu=False)
         self.block2 = Block(128, 256, reps=2, stride=2, BatchNorm=BatchNorm, start_with_relu=False,
                             grow_first=True)
-        self.block3 = Block(256, 728, reps=2, stride=entry_block3_stride, BatchNorm=BatchNorm,
+        self.block3 = Block(256, 736, reps=2, stride=entry_block3_stride, BatchNorm=BatchNorm,
                             start_with_relu=True, grow_first=True, is_last=True)
 
         # Middle flow
-        self.block4  = Block(728, 728, reps=3, stride=1, dilation=middle_block_dilation,
+        self.block4  = Block(736, 736, reps=3, stride=1, dilation=middle_block_dilation,
                              BatchNorm=BatchNorm, start_with_relu=True, grow_first=True)
-        self.block5  = Block(728, 728, reps=3, stride=1, dilation=middle_block_dilation,
+        self.block5  = Block(736, 736, reps=3, stride=1, dilation=middle_block_dilation,
                              BatchNorm=BatchNorm, start_with_relu=True, grow_first=True)
-        self.block6  = Block(728, 728, reps=3, stride=1, dilation=middle_block_dilation,
+        self.block6  = Block(736, 736, reps=3, stride=1, dilation=middle_block_dilation,
                              BatchNorm=BatchNorm, start_with_relu=True, grow_first=True)
-        self.block7  = Block(728, 728, reps=3, stride=1, dilation=middle_block_dilation,
+        self.block7  = Block(736, 736, reps=3, stride=1, dilation=middle_block_dilation,
                              BatchNorm=BatchNorm, start_with_relu=True, grow_first=True)
-        self.block8  = Block(728, 728, reps=3, stride=1, dilation=middle_block_dilation,
+        self.block8  = Block(736, 736, reps=3, stride=1, dilation=middle_block_dilation,
                              BatchNorm=BatchNorm, start_with_relu=True, grow_first=True)
-        self.block9  = Block(728, 728, reps=3, stride=1, dilation=middle_block_dilation,
+        self.block9  = Block(736, 736, reps=3, stride=1, dilation=middle_block_dilation,
                              BatchNorm=BatchNorm, start_with_relu=True, grow_first=True)
-        self.block10 = Block(728, 728, reps=3, stride=1, dilation=middle_block_dilation,
+        self.block10 = Block(736, 736, reps=3, stride=1, dilation=middle_block_dilation,
                              BatchNorm=BatchNorm, start_with_relu=True, grow_first=True)
-        self.block11 = Block(728, 728, reps=3, stride=1, dilation=middle_block_dilation,
+        self.block11 = Block(736, 736, reps=3, stride=1, dilation=middle_block_dilation,
                              BatchNorm=BatchNorm, start_with_relu=True, grow_first=True)
-        self.block12 = Block(728, 728, reps=3, stride=1, dilation=middle_block_dilation,
+        self.block12 = Block(736, 736, reps=3, stride=1, dilation=middle_block_dilation,
                              BatchNorm=BatchNorm, start_with_relu=True, grow_first=True)
-        self.block13 = Block(728, 728, reps=3, stride=1, dilation=middle_block_dilation,
+        self.block13 = Block(736, 736, reps=3, stride=1, dilation=middle_block_dilation,
                              BatchNorm=BatchNorm, start_with_relu=True, grow_first=True)
-        self.block14 = Block(728, 728, reps=3, stride=1, dilation=middle_block_dilation,
+        self.block14 = Block(736, 736, reps=3, stride=1, dilation=middle_block_dilation,
                              BatchNorm=BatchNorm, start_with_relu=True, grow_first=True)
-        self.block15 = Block(728, 728, reps=3, stride=1, dilation=middle_block_dilation,
+        self.block15 = Block(736, 736, reps=3, stride=1, dilation=middle_block_dilation,
                              BatchNorm=BatchNorm, start_with_relu=True, grow_first=True)
-        self.block16 = Block(728, 728, reps=3, stride=1, dilation=middle_block_dilation,
+        self.block16 = Block(736, 736, reps=3, stride=1, dilation=middle_block_dilation,
                              BatchNorm=BatchNorm, start_with_relu=True, grow_first=True)
-        self.block17 = Block(728, 728, reps=3, stride=1, dilation=middle_block_dilation,
+        self.block17 = Block(736, 736, reps=3, stride=1, dilation=middle_block_dilation,
                              BatchNorm=BatchNorm, start_with_relu=True, grow_first=True)
-        self.block18 = Block(728, 728, reps=3, stride=1, dilation=middle_block_dilation,
+        self.block18 = Block(736, 736, reps=3, stride=1, dilation=middle_block_dilation,
                              BatchNorm=BatchNorm, start_with_relu=True, grow_first=True)
-        self.block19 = Block(728, 728, reps=3, stride=1, dilation=middle_block_dilation,
+        self.block19 = Block(736, 736, reps=3, stride=1, dilation=middle_block_dilation,
                              BatchNorm=BatchNorm, start_with_relu=True, grow_first=True)
 
         # Exit flow
-        self.block20 = Block(728, 1024, reps=2, stride=1, dilation=exit_block_dilations[0],
+        self.block20 = Block(736, 1024, reps=2, stride=1, dilation=exit_block_dilations[0],
                              BatchNorm=BatchNorm, start_with_relu=True, grow_first=False, is_last=True)
 
         self.conv3 = SeparableConv2d(1024, 1536, 3, stride=1, dilation=exit_block_dilations[1], BatchNorm=BatchNorm)
