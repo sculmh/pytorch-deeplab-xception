@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 class Path(object):
     @staticmethod
     def db_root_dir(dataset):

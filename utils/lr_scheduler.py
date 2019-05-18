@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 ##+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ## Created by: Hang Zhang
 ## ECE Department, Rutgers University

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from modeling.backbone import resnet, xception, xception_gn, drn, mobilenet
 
 
