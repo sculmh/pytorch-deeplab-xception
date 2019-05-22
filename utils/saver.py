@@ -55,6 +55,7 @@ class Saver(object):
         p['epoch'] = self.args.epochs
         p['base_size'] = self.args.base_size
         p['crop_size'] = self.args.crop_size
+        p['groups'] = 0 if self.args.groups is None else self.args.groups
 
         for key, val in p.items():
             log_file.write(key + ':' + str(val) + '\n')
