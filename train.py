@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import argparse
 import os
 import numpy as np
@@ -8,7 +7,6 @@ from mypath import Path
 from dataloaders import make_data_loader
 from modeling.sync_batchnorm.replicate import patch_replication_callback
 from modeling.deeplab import *
-from modeling.deeplab_gn import *
 from utils.loss import SegmentationLosses
 from utils.calculate_weights import calculate_weigths_labels
 from utils.lr_scheduler import LR_Scheduler
@@ -16,13 +14,12 @@ from utils.saver import Saver
 from utils.summaries import TensorboardSummary
 from utils.metrics import Evaluator
 
-
 class Trainer(object):
     def __init__(self, args):
         self.args = args
 
         # Define Saver
-        self.saver = Saver(args)
+        self.saver = Saver(args)  # 保存checkpoint
         self.saver.save_experiment_config()
         # Define Tensorboard Summary
         self.summary = TensorboardSummary(self.saver.experiment_dir)
@@ -33,22 +30,11 @@ class Trainer(object):
         self.train_loader, self.val_loader, self.test_loader, self.nclass = make_data_loader(args, **kwargs)
 
         # Define network
-        model = None
-        if args.groups is None:
-            # using BatchNorm
-            model = DeepLab(num_classes=self.nclass,
-                            backbone=args.backbone,
-                            output_stride=args.out_stride,
-                            sync_bn=args.sync_bn,
-                            freeze_bn=args.freeze_bn)
-            print("using DeepLab with BatchNorm")
-        else:
-            # using GroupNorm
-            model = DeepLab_GN(num_classes=self.nclass,
-                               backbone=args.backbone,
-                               output_stride=args.out_stride,
-                               groups=args.groups)
-            print("using DeepLab with GroupNorm")
+        model = DeepLab(num_classes=self.nclass,
+                        backbone=args.backbone,
+                        output_stride=args.out_stride,
+                        sync_bn=args.sync_bn,
+                        freeze_bn=args.freeze_bn)
 
         train_params = [{'params': model.get_1x_lr_params(), 'lr': args.lr},
                         {'params': model.get_10x_lr_params(), 'lr': args.lr * 10}]
@@ -74,7 +60,8 @@ class Trainer(object):
         # Define Evaluator
         self.evaluator = Evaluator(self.nclass)
         # Define lr scheduler
-        self.scheduler = LR_Scheduler(args.lr_scheduler, args.lr, args.epochs, len(self.train_loader))
+        self.scheduler = LR_Scheduler(args.lr_scheduler, args.lr,
+                                            args.epochs, len(self.train_loader))
 
         # Using cuda
         if args.cuda:
@@ -90,8 +77,8 @@ class Trainer(object):
             checkpoint = torch.load(args.resume)
             args.start_epoch = checkpoint['epoch']
             if args.cuda:
-                self.model.module.load_state_dict(checkpoint['state_dict'])
-            else:
+                self.model.module.load_state_dict(checkpoint['state_dict'])  # 加载模型参数
+            else: 
                 self.model.load_state_dict(checkpoint['state_dict'])
             if not args.ft:
                 self.optimizer.load_state_dict(checkpoint['optimizer'])
@@ -138,8 +125,9 @@ class Trainer(object):
                 'epoch': epoch + 1,
                 'state_dict': self.model.module.state_dict(),
                 'optimizer': self.optimizer.state_dict(),
-                'best_pred': self.best_pred,
+                'best_pred': self.lab.best_pred,
             }, is_best)
+
 
     def validation(self, epoch):
         self.model.eval()
@@ -187,7 +175,6 @@ class Trainer(object):
                 'best_pred': self.best_pred,
             }, is_best)
 
-
 def main():
     parser = argparse.ArgumentParser(description="PyTorch DeeplabV3Plus Training")
     parser.add_argument('--backbone', type=str, default='resnet',
@@ -226,9 +213,6 @@ def main():
                                 testing (default: auto)')
     parser.add_argument('--use-balanced-weights', action='store_true', default=False,
                         help='whether to use balanced weights (default: False)')
-    parser.add_argument('--groups', type=int, default=None,
-                        metavar='N', help='number groups for GroupNormalization.When groups is not None, \
-                        Deeplab will use GN instead of BN, now it only support Xception backbone')
     # optimizer params
     parser.add_argument('--lr', type=float, default=None, metavar='LR',
                         help='learning rate (default: auto)')
@@ -239,7 +223,7 @@ def main():
                         metavar='M', help='momentum (default: 0.9)')
     parser.add_argument('--weight-decay', type=float, default=5e-4,
                         metavar='M', help='w-decay (default: 5e-4)')
-    parser.add_argument('--nesterov', action='store_true', default=True,
+    parser.add_argument('--nesterov', action='store_true', default=False,
                         help='whether use nesterov (default: False)')
     # cuda, seed and logging
     parser.add_argument('--no-cuda', action='store_true', default=
@@ -251,7 +235,7 @@ def main():
                         help='random seed (default: 1)')
     # checking point
     parser.add_argument('--resume', type=str, default=None,
-                        help='put the path to resuming file if needed')
+                        help='put the path to resuming file if needed')   # !important
     parser.add_argument('--checkname', type=str, default=None,
                         help='set the checkpoint name')
     # finetuning pre-trained models
@@ -259,15 +243,20 @@ def main():
                         help='finetuning on a different dataset')
     # evaluation option
     parser.add_argument('--eval-interval', type=int, default=1,
-                        help='evaluation interval (default: 1)')
+                        help='evaluuation interval (default: 1)')
     parser.add_argument('--no-val', action='store_true', default=False,
                         help='skip validation during training')
 
     args = parser.parse_args()
+    print('----', torch.cuda.is_available())
     args.cuda = not args.no_cuda and torch.cuda.is_available()
+    if args.cuda != True:
+        return
+    print('args.cuda == ', args.cuda)
     if args.cuda:
         try:
             args.gpu_ids = [int(s) for s in args.gpu_ids.split(',')]
+            print('using gpus: ', args.gpu_ids)
         except ValueError:
             raise ValueError('Argument --gpu_ids must be a comma-separated list of integers only')
 
@@ -281,6 +270,7 @@ def main():
     if args.epochs is None:
         epoches = {
             'coco': 30,
+            'cityscapes': 200,
             'cityscapes': 200,
             'pascal': 50,
         }
@@ -300,6 +290,7 @@ def main():
         }
         args.lr = lrs[args.dataset.lower()] / (4 * len(args.gpu_ids)) * args.batch_size
 
+
     if args.checkname is None:
         args.checkname = 'deeplab-'+str(args.backbone)
     print(args)
@@ -314,6 +305,5 @@ def main():
 
     trainer.writer.close()
 
-
 if __name__ == "__main__":
-    main()
+   main()
