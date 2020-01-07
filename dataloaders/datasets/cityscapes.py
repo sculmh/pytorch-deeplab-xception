@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import os
 import numpy as np
 import scipy.misc as m
@@ -7,7 +6,6 @@ from torch.utils import data
 from mypath import Path
 from torchvision import transforms
 from dataloaders import custom_transforms as tr
-
 
 class CityscapesSegmentation(data.Dataset):
     NUM_CLASSES = 19
@@ -20,7 +18,7 @@ class CityscapesSegmentation(data.Dataset):
         self.files = {}
 
         self.images_base = os.path.join(self.root, 'leftImg8bit', self.split)
-        self.annotations_base = os.path.join(self.root, 'gtFine', self.split)
+        self.annotations_base = os.path.join(self.root, 'gtFine_trainvaltest', 'gtFine', self.split)
 
         self.files[split] = self.recursive_glob(rootdir=self.images_base, suffix='.png')
 
@@ -44,7 +42,7 @@ class CityscapesSegmentation(data.Dataset):
 
     def __getitem__(self, index):
 
-        img_path = self.files[self.split][index].rstrip()
+        img_path = self.files[self.split][index].rstrip()  # /home/lab/datasets/cityscapes/leftImg8bit/test/sichuan/berlin_000015_000019_leftImg8bit.png
         lbl_path = os.path.join(self.annotations_base,
                                 img_path.split(os.sep)[-2],
                                 os.path.basename(img_path)[:-15] + 'gtFine_labelIds.png')
@@ -54,14 +52,16 @@ class CityscapesSegmentation(data.Dataset):
         _tmp = self.encode_segmap(_tmp)
         _target = Image.fromarray(_tmp)
 
-        sample = {'image': _img, 'label': _target}
+        sample = {'image': _img, 'label': _target,}
 
         if self.split == 'train':
             return self.transform_tr(sample)
         elif self.split == 'val':
             return self.transform_val(sample)
         elif self.split == 'test':
-            return self.transform_ts(sample)
+            dict = self.transform_ts(sample)
+            dict['img_path'] = img_path
+            return dict
 
     def encode_segmap(self, mask):
         # Put all void classes to zero
@@ -108,7 +108,6 @@ class CityscapesSegmentation(data.Dataset):
 
         return composed_transforms(sample)
 
-
 if __name__ == '__main__':
     from dataloaders.utils import decode_segmap
     from torch.utils.data import DataLoader
@@ -146,3 +145,4 @@ if __name__ == '__main__':
             break
 
     plt.show(block=True)
+
