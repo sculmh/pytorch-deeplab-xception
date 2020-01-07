@@ -1,19 +1,19 @@
-# -*- coding: utf-8 -*-
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
 
-
-def decode_seg_map_sequence(label_masks, dataset='pascal'):
+def decode_seg_map_sequence(label_masks, dataset='pascal', is_test=False):
     rgb_masks = []
+    # print('maksk len = ', len(label_masks))
     for label_mask in label_masks:
-        rgb_mask = decode_segmap(label_mask, dataset)
+        rgb_mask = decode_segmap(label_mask, dataset, is_test=is_test)
         rgb_masks.append(rgb_mask)
+    # print('----:', np.array(rgb_masks).shape)
     rgb_masks = torch.from_numpy(np.array(rgb_masks).transpose([0, 3, 1, 2]))
     return rgb_masks
 
 
-def decode_segmap(label_mask, dataset, plot=False):
+def decode_segmap(label_mask, dataset, plot=False, is_test=False):
     """Decode segmentation class labels into a color image
     Args:
         label_mask (np.ndarray): an (M,N) array of integer values denoting
@@ -40,12 +40,19 @@ def decode_segmap(label_mask, dataset, plot=False):
         g[label_mask == ll] = label_colours[ll, 1]
         b[label_mask == ll] = label_colours[ll, 2]
     rgb = np.zeros((label_mask.shape[0], label_mask.shape[1], 3))
-    rgb[:, :, 0] = r / 255.0
-    rgb[:, :, 1] = g / 255.0
-    rgb[:, :, 2] = b / 255.0
+    if is_test:
+        rgb[:, :, 0] = r
+        rgb[:, :, 1] = g
+        rgb[:, :, 2] = b
+    else:
+        rgb[:, :, 0] = r  / 255.0
+        rgb[:, :, 1] = g  / 255.0
+        rgb[:, :, 2] = b  / 255.0
+
     if plot:
         plt.imshow(rgb)
         plt.show()
+        return rgb
     else:
         return rgb
 
