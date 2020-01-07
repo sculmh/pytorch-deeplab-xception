@@ -1,7 +1,5 @@
-# -*- coding: utf-8 -*-
 from dataloaders.datasets import cityscapes, coco, combine_dbs, pascal, sbd
 from torch.utils.data import DataLoader
-
 
 def make_data_loader(args, **kwargs):
 
@@ -13,7 +11,7 @@ def make_data_loader(args, **kwargs):
             train_set = combine_dbs.CombineDBs([train_set, sbd_train], excluded=[val_set])
 
         num_class = train_set.NUM_CLASSES
-        train_loader = DataLoader(train_set, batch_size=args.batch_size, shuffle=True, **kwargs)
+        train_loader = DataLoader(train_set, batch_size=args.batch_size, shuffle=True, **kwargs) 
         val_loader = DataLoader(val_set, batch_size=args.batch_size, shuffle=False, **kwargs)
         test_loader = None
 
@@ -24,8 +22,10 @@ def make_data_loader(args, **kwargs):
         val_set = cityscapes.CityscapesSegmentation(args, split='val')
         test_set = cityscapes.CityscapesSegmentation(args, split='test')
         num_class = train_set.NUM_CLASSES
-        train_loader = DataLoader(train_set, batch_size=args.batch_size, shuffle=True, **kwargs)
-        val_loader = DataLoader(val_set, batch_size=args.batch_size, shuffle=False, **kwargs)
+        # train_loader = DataLoader(train_set, batch_size=args.batch_size, shuffle=True,**kwargs)
+        # val_loader = DataLoader(val_set, batch_size=args.batch_size, shuffle=False, **kwargs)
+        train_loader = DataLoader(train_set, batch_size=args.batch_size, shuffle=True, drop_last=True,**kwargs)
+        val_loader = DataLoader(val_set, batch_size=args.batch_size, shuffle=False, drop_last=True, **kwargs)
         test_loader = DataLoader(test_set, batch_size=args.batch_size, shuffle=False, **kwargs)
 
         return train_loader, val_loader, test_loader, num_class
@@ -41,3 +41,15 @@ def make_data_loader(args, **kwargs):
 
     else:
         raise NotImplementedError
+
+
+def make_test_data_loader(args, **kwargs):
+    if args.dataset != 'cityscapes':
+        raise NotImplementedError('only support cityscapes')
+    test_set = cityscapes.CityscapesSegmentation(args, split='test')
+    num_class = 19
+    test_loader = DataLoader(test_set, batch_size=args.batch_size, shuffle=False, **kwargs)
+
+    return test_loader, num_class
+
+
