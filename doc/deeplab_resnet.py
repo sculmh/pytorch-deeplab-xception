@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import math
 import torch
 import torch.nn as nn
@@ -7,7 +6,6 @@ import torch.utils.model_zoo as model_zoo
 from modeling.sync_batchnorm.batchnorm import SynchronizedBatchNorm2d
 
 BatchNorm2d = SynchronizedBatchNorm2d
-
 
 class Bottleneck(nn.Module):
     expansion = 4
@@ -48,7 +46,6 @@ class Bottleneck(nn.Module):
 
         return out
 
-
 class ResNet(nn.Module):
 
     def __init__(self, nInputChannels, block, layers, os=16, pretrained=False):
@@ -66,7 +63,8 @@ class ResNet(nn.Module):
             raise NotImplementedError
 
         # Modules
-        self.conv1 = nn.Conv2d(nInputChannels, 64, kernel_size=7, stride=2, padding=3, bias=False)
+        self.conv1 = nn.Conv2d(nInputChannels, 64, kernel_size=7, stride=2, padding=3,
+                                bias=False)
         self.bn1 = BatchNorm2d(64)
         self.relu = nn.ReLU(inplace=True)
         self.maxpool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
@@ -146,7 +144,6 @@ class ResNet(nn.Module):
                 model_dict[k] = v
         state_dict.update(model_dict)
         self.load_state_dict(state_dict)
-
 
 def ResNet101(nInputChannels=3, os=16, pretrained=False):
     model = ResNet(nInputChannels, Bottleneck, [3, 4, 23, 3], os, pretrained=pretrained)
@@ -237,9 +234,13 @@ class DeepLabv3_plus(nn.Module):
 
     def forward(self, input):
         x, low_level_features = self.resnet_features(input)
+        print('x.size = ', x.size())
         x1 = self.aspp1(x)
+        print('x1.size = ', x1.size())
         x2 = self.aspp2(x)
+        print('x2.size = ', x2.size())
         x3 = self.aspp3(x)
+        print('x3.size = ', x3.size())
         x4 = self.aspp4(x)
         x5 = self.global_avg_pool(x)
         x5 = F.upsample(x5, size=x4.size()[2:], mode='bilinear', align_corners=True)
@@ -255,6 +256,7 @@ class DeepLabv3_plus(nn.Module):
         low_level_features = self.conv2(low_level_features)
         low_level_features = self.bn2(low_level_features)
         low_level_features = self.relu(low_level_features)
+
 
         x = torch.cat((x, low_level_features), dim=1)
         x = self.last_conv(x)
@@ -275,7 +277,6 @@ class DeepLabv3_plus(nn.Module):
             elif isinstance(m, BatchNorm2d):
                 m.weight.data.fill_(1)
                 m.bias.data.zero_()
-
 
 def get_1x_lr_params(model):
     """
@@ -304,9 +305,17 @@ def get_10x_lr_params(model):
 
 
 if __name__ == "__main__":
-    model = DeepLabv3_plus(nInputChannels=3, n_classes=21, os=16, pretrained=True, _print=True)
+    model = DeepLabv3_plus(nInputChannels=3, n_classes=21, os=16, pretrained=False, _print=True)
+    print('starting...')
     model.eval()
-    image = torch.randn(1, 3, 512, 512)
+    image = torch.randn(1, 3, 1024, 1024)
+    print('input image size = ', image.size())
     with torch.no_grad():
         output = model.forward(image)
     print(output.size())
+
+
+
+
+
+
